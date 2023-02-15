@@ -178,7 +178,7 @@ nav {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 4fr 3fr;
-  grid-template-rows: 5rem repeat(3, 12rem) auto;
+  grid-template-rows: 6rem repeat(3, 12rem) auto;
   gap: 2rem;
   column-gap: 5rem;
   transition: all 1s;
@@ -202,12 +202,12 @@ nav {
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
-  transform: translate(200%, -50%) rotate(-90deg);
+  transform: translate(185%, -50%) rotate(-90deg);
   transition: all 150ms;
 }
 
 .btn__logout:hover {
-  transform: translate(195%, -50%) rotate(-90deg);
+  transform: translate(180%, -50%) rotate(-90deg);
   background-image: linear-gradient(to top, #e92a55, #f05f5f);
   color: #ddd;
 }
@@ -312,12 +312,20 @@ nav {
 }
 
 .btn--sort {
-  margin-left: auto;
+  margin-left: 8rem;
   border: none;
   background: none;
+  color: #555;
   font-size: 1.3rem;
   font-weight: 500;
   cursor: pointer;
+}
+
+.sorted {
+  background-color: rgba(154, 225, 93, 0.15);
+  border: 1px solid #66c873;
+  padding: 5px 10px;
+  border-radius: 120px;
 }
 
 /* OPERATIONS */
