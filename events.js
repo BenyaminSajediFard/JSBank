@@ -11,18 +11,26 @@ btnRegister.addEventListener('click', function (e) {
   e.preventDefault();
   let username = inputRegisterUsername.value.toLowerCase();
   let pin = inputRegisterPin.value;
-  if (username && pin && pin.length >= 4) {
-    if (checkForExistingUser(username)) {
+  if (username && pin && pin.length === 4) {
+    if (!checkForExistingUser(username)) {
       createUser(username, pin);
       registrationMode.classList.add('hidden');
       signMode.classList.remove('hidden');
-    }
-  } else showMessage('Wrong inputs', 'Name or Pin is empty or Pin length is less than 4.', 3);
+    } else
+      showMessage(
+        '🔴 User already exists!',
+        'An account with the same owner was found.<br/>Either sign-in to your account or use another username',
+        3
+      );
+    inputRegisterUsername.value = '';
+    inputRegisterPin.value = '';
+  } else showMessage('⚠️ Wrong inputs', 'Name or Pin is empty or Pin length is less than 4.', 3);
 });
 
 // LOGIN
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
+  acceptanceRatio = 5;
   const usernameInput = inputLoginUsername.value;
   const pinInput = inputLoginPin.value;
   checkUserSignIn(usernameInput, pinInput);
@@ -38,7 +46,7 @@ btnLogin.addEventListener('click', function (e) {
 
 // LOGOUT
 btnLogout.addEventListener('click', function () {
-  showMessage('🚶 Logged out successfully', 'You were logged out of panel.', 2);
+  showMessage('🚶 Logged out', 'You were logged out of panel successfully.', 2);
   logoutAction(timer);
 });
 
@@ -46,14 +54,14 @@ btnLogout.addEventListener('click', function () {
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
   const destinationAcc = inputTransferTo.value;
-  const transferAmount = Number(inputTransferAmount.value);
+  const transferAmount = +inputTransferAmount.value;
   const clearInputs = () => {
     inputTransferAmount.value = '';
     inputTransferTo.value = '';
   };
   if (transferAmount <= 0) {
     showMessage(
-      'Invalid transfer value',
+      '⚠️ Invalid transfer value',
       'Entered transfer value should be more than zero.',
       3
     );
@@ -66,7 +74,13 @@ btnTransfer.addEventListener('click', function (e) {
     );
   } else {
     const recipient = findByUsername(destinationAcc);
-    if (recipient) {
+    if (recipient === activeUser)
+      showMessage(
+        '😑',
+        'Dude, did you just wanted to transfer money to yourself?!',
+        3
+      );
+    else if (recipient) {
       creditTransfer(activeUser, recipient, transferAmount);
       updateUI(activeUser);
       clearInputs();
@@ -84,7 +98,7 @@ btnTransfer.addEventListener('click', function (e) {
 btnRequest.addEventListener('click', function (e) {
   e.preventDefault();
   const requestFrom = inputRequestFrom.value;
-  const requestAmount = Number(inputRequestAmount.value);
+  const requestAmount = Math.floor(inputRequestAmount.value);
   const contact = findByUsername(requestFrom);
   const clearInputs = () => {
     inputRequestFrom.value = '';
@@ -92,9 +106,9 @@ btnRequest.addEventListener('click', function (e) {
   };
 
   if (contact && contact != activeUser && requestAmount >= 10) {
-    const userAcceptance = genRandNum(2);
+    const randAcceptanceNum = genRandNum(10);
     const contactBalance = sumUpTransactions(contact);
-    if (userAcceptance == 1) {
+    if (randAcceptanceNum >= acceptanceRatio) {
       if (contactBalance - 10 >= requestAmount) {
         showMessage(
           '👍 Request accepted!',
@@ -102,6 +116,7 @@ btnRequest.addEventListener('click', function (e) {
           3
         );
         clearInputs();
+        acceptanceRatio--;
         const timeToDeliver = genRandNum(60);
         setTimeout(() => {
           creditTransfer(contact, activeUser, requestAmount);
@@ -139,7 +154,7 @@ btnRequest.addEventListener('click', function (e) {
 // LOAN ACTION
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
-  const loanRequestAmount = Number(inputLoanAmount.value);
+  const loanRequestAmount = Math.floor(inputLoanAmount.value);
   const allowedLoanAmount = sumUpDiff(activeUser, tr => tr > 0) * 1.25;
   const permittedAmount = activeUser.loans.reduce(
     (acc, curr) => acc - curr,
@@ -160,6 +175,7 @@ btnLoan.addEventListener('click', function (e) {
           isAllowedToGetLoan = true;
         }, 60 * 1000);
         activeUser.movements.push(loanRequestAmount);
+        activeUser.movementsDates.push(submitDate());
         activeUser.loans.push(loanRequestAmount);
         updateUI(activeUser);
       }, timeToDeliver * 1000);
@@ -182,14 +198,8 @@ btnLoan.addEventListener('click', function (e) {
 
 // SORT
 btnSort.addEventListener('click', function () {
-  if (!isSorted) {
-    const sorted = sortTransactions(activeUser);
-    renderTransactions(sorted);
-    btnSort.classList.add('sorted');
-    isSorted = true;
-  } else {
-    renderTransactions(activeUser.movements);
-    btnSort.classList.remove('sorted');
-    isSorted = false;
-  }
+  const sorted = sortTransactions(activeUser);
+  renderTransactions(!isSorted ? sorted : activeUser.movements);
+  btnSort.classList.toggle('sorted');
+  isSorted = !isSorted;
 });
