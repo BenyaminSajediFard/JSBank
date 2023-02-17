@@ -34,7 +34,7 @@ const account2 = {
     '2022-06-08T14:11:59.604Z',
     '2022-06-27T17:01:17.194Z',
     '2022-10-11T23:36:17.929Z',
-    '2023-07-12T10:51:36.790Z',
+    '2023-02-12T10:51:36.790Z',
   ],
   currency: 'EUR',
   locale: 'pt-PT',
@@ -81,15 +81,12 @@ const accounts = [account1, account2, account3, account4];
 // NECESSARY FOR USER ACTIONS
 let activeUser,
   acceptanceRatio,
+  now,
+  currYear,
+  currMonth,
+  currDay,
+  currHour,
+  currMinute,
   timer = undefined;
 let isAllowedToGetLoan = true;
 let isSorted = false;
-
-// DATE TIME
-const now = new Date();
-const currYear = now.getFullYear();
-const currMonth = now.getMonth() + 1;
-const currDay = now.getDate();
-const currHour = now.getHours();
-const currMinute = now.getMinutes();
-const currSeconds = now.getSeconds();

@@ -31,6 +31,14 @@ btnRegister.addEventListener('click', function (e) {
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
   acceptanceRatio = 5;
+  // DATE TIME
+  const now = new Date();
+  currYear = now.getFullYear();
+  currMonth = now.getMonth() + 1;
+  currDay = now.getDate();
+  currHour = now.getHours();
+  currMinute = now.getMinutes();
+
   const usernameInput = inputLoginUsername.value;
   const pinInput = inputLoginPin.value;
   checkUserSignIn(usernameInput, pinInput);

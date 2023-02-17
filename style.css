@@ -178,7 +178,7 @@ nav {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 4fr 3fr;
-  grid-template-rows: 6rem repeat(3, 12rem) auto;
+  grid-template-rows: 6rem repeat(3, 11.5rem) auto;
   gap: 2rem;
   column-gap: 5rem;
   transition: all 1s;
@@ -240,8 +240,9 @@ nav {
 .movements {
   grid-row: 2 / span 3;
   background-color: #fff;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   overflow: scroll;
+  overflow-x: hidden;
 }
 
 .movements__row {
@@ -252,7 +253,7 @@ nav {
 }
 
 .odd-movement {
-  background-color: #f5f5f5;
+  background-color: #f3f3f3;
 }
 
 .movements__type {
@@ -295,10 +296,10 @@ nav {
 }
 
 .summary__label {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 500;
   text-transform: uppercase;
-  margin-right: 0.8rem;
+  margin-right: 0.6rem;
 }
 
 .summary__value {
@@ -432,7 +433,7 @@ h2 {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background-color: #fff;
+  background-color: #f3f3f3;
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 2px;

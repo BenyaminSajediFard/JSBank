@@ -12,6 +12,33 @@ const genRandNum = threshold => Math.floor(Math.random() * threshold) + 1;
 
 const submitDate = (date = new Date()) => date.toISOString();
 
+const dateTwoDigitsFormat = date => date.toString().padStart(2, 0);
+
+const intlDate = (
+  specDate,
+  {
+    year = 'numeric',
+    month = 'long',
+    day = 'numeric',
+    hour = undefined,
+    minute = undefined,
+  }
+) =>
+  new Intl.DateTimeFormat(activeUser.locale, {
+    year,
+    month,
+    day,
+    hour,
+    minute,
+  }).format(specDate);
+
+const intlCurrency = value =>
+  new Intl.NumberFormat(activeUser.locale, {
+    style: 'currency',
+    currency: activeUser.locale === 'en-US' ? 'USD' : 'EUR',
+    useGrouping: true,
+  }).format(value);
+
 const createNickname = fullName =>
   fullName
     .split(' ')
@@ -23,7 +50,7 @@ function createUser(username, pin) {
     owner: username,
     movements: [100],
     movementsDates: [submitDate()],
-    locale: 'en-US',
+    locale: navigator.language,
     interestRate: 1,
     pin,
   };
@@ -69,8 +96,12 @@ function startTimerCountDown() {
       minutes--;
       seconds = 59;
     }
-    if (seconds >= 10) labelTimer.textContent = `0${minutes}:${seconds}`;
-    else labelTimer.textContent = `0${minutes}:0${seconds}`;
+    if (seconds >= 10)
+      labelTimer.textContent = `${dateTwoDigitsFormat(minutes)}:${seconds}`;
+    else
+      labelTimer.textContent = `${dateTwoDigitsFormat(
+        minutes
+      )}:${dateTwoDigitsFormat(seconds)}`;
   }, 1000);
 }
 
@@ -94,36 +125,46 @@ function sumUpInterest(user) {
 const sortTransactions = user => [...user.movements].sort((a, b) => a - b);
 
 function renderDate(year, month, day) {
-  if (year === currYear && month === currMonth && currDay - day < 7) {
-    switch (currDay - day) {
+  const daysDiff = currDay - day;
+  if (year === currYear && month === currMonth && daysDiff < 7) {
+    switch (daysDiff) {
       case 0:
-        return 'less than a day';
+        return 'today';
       case 1:
         return 'yesterday';
       case 2:
-        return 'two days ago';
+        return `${daysDiff} days ago`;
       case 3:
-        return 'three days ago';
+        return `${daysDiff} days ago`;
       case 4:
-        return 'four days ago';
+        return `${daysDiff} days ago`;
       case 5:
-        return 'five days ago';
+        return `${daysDiff} days ago`;
       case 6:
-        return 'six days ago';
+        return `${daysDiff} days ago`;
       case 7:
-        return 'a week ago';
+        return `a week ago`;
     }
-  } else return `${currDay}/${currMonth}/${currYear}`;
+  } else return false;
 }
 
 function renderTransactions(mov) {
   transactions.innerHTML = '';
   mov.forEach((element, idx) => {
-    const transactionDate = new Date(activeUser.movementsDates[idx]);
-    const transYear = transactionDate.getFullYear();
-    const transMonth = transactionDate.getMonth() + 1;
-    const transDay = transactionDate.getDate();
-    const shownDate = renderDate(transYear, transMonth, transDay);
+    const trDate = new Date(
+      activeUser.movementsDates[activeUser.movements.indexOf(element)]
+    );
+    const shownDate =
+      renderDate(
+        trDate.getFullYear(),
+        trDate.getMonth() + 1,
+        trDate.getDate()
+      ) ||
+      intlDate(trDate, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      });
     let transactionType = element > 0 ? 'deposit' : 'withdrawal';
     transactions.insertAdjacentHTML(
       'afterbegin',
@@ -132,34 +173,47 @@ function renderTransactions(mov) {
         activeUser.movements.indexOf(element) + 1
       } ${transactionType}</div>
         <div class="movements__date">${shownDate}</div>
-        <div class="movements__value">$${element.toFixed(2)}</div>
+        <div class="movements__value">${intlCurrency(element)}</div>
       </div>`
     );
   });
 }
 
 function renderWelcome(username) {
-  if (5 < currHour < 11) return `Good morning, ${username}! 🌇`;
-  else if (11 <= currHour <= 14) return `Good afternoon, ${username}! 🌞`;
-  else if (14 < currHour <= 20) return `Hey ${username}, good evening! 🌆`;
-  else if (20 < currHour <= 0) return `Have a good night, ${username}! 🌃`;
-  else return `Hey there night owl 🦉`;
+  if (5 < currHour && 11 >= currHour) return `Good morning, ${username}! 🌇`;
+  else if (11 < currHour && 15 >= currHour)
+    return `Good afternoon, ${username}! 🌞`;
+  else if (15 < currHour && 20 >= currHour)
+    return `Hey ${username}, good evening! 🌆`;
+  else if (20 < currHour) return `Have a good night, ${username}! 🌃`;
+  return `Hey there, night owl! 🦉`;
 }
 
 function updateUI(user = activeUser) {
-  const totalBalance = sumUpTransactions(user);
-  const totalDeposits = sumUpDiff(user, tr => tr > 0);
-  const totalWithdrawal = sumUpDiff(user, tr => tr < 0);
-  const totalInterest = sumUpInterest(user);
+  const totalBalance = intlCurrency(sumUpTransactions(user));
+  const totalDeposits = intlCurrency(sumUpDiff(user, tr => tr > 0));
+  console.log(sumUpDiff(user, tr => tr < 0));
+  const totalWithdrawal = intlCurrency(Math.abs(sumUpDiff(user, tr => tr < 0)));
+  const totalInterest = intlCurrency(sumUpInterest(user));
 
+  // Display account heading (welcome, date and total balance)
   labelWelcome.textContent = renderWelcome(user.owner);
-  labelDate.textContent = `${currDay}/${currMonth}/${currYear}`;
-  labelBalance.textContent = `$${totalBalance.toFixed(2)}`;
-  labelSumIn.textContent = `$${totalDeposits.toFixed(2)}`;
-  labelSumOut.textContent = `$${Math.abs(totalWithdrawal).toFixed(2)}`;
-  labelSumInterest.textContent = `$${totalInterest.toFixed(2)}`;
+  labelDate.textContent = intlDate(now, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  });
+  labelBalance.textContent = `${totalBalance}`;
 
+  // Display Transactions
   renderTransactions(user.movements);
+
+  // Display account summary
+  labelSumIn.textContent = `${totalDeposits}`;
+  labelSumOut.textContent = `${totalWithdrawal}`;
+  labelSumInterest.textContent = `${totalInterest}`;
 }
 
 const findByUsername = username =>
