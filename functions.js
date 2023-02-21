@@ -35,7 +35,7 @@ const intlDate = (
 const intlCurrency = value =>
   new Intl.NumberFormat(activeUser.locale, {
     style: 'currency',
-    currency: activeUser.locale === 'en-US' ? 'USD' : 'EUR',
+    currency: activeUser.currency,
     useGrouping: true,
   }).format(value);
 
@@ -51,6 +51,7 @@ function createUser(username, pin) {
     movements: [100],
     movementsDates: [submitDate()],
     locale: navigator.language,
+    currency: navigator.language == 'en-US' ? 'USD' : 'EUR',
     interestRate: 1,
     pin,
   };
@@ -180,8 +181,8 @@ function renderTransactions(mov) {
 }
 
 function renderWelcome(username) {
-  if (5 < currHour && 11 >= currHour) return `Good morning, ${username}! 🌇`;
-  else if (11 < currHour && 15 >= currHour)
+  if (5 < currHour && 10 >= currHour) return `Good morning, ${username}! 🌇`;
+  else if (10 < currHour && 15 >= currHour)
     return `Good afternoon, ${username}! 🌞`;
   else if (15 < currHour && 20 >= currHour)
     return `Hey ${username}, good evening! 🌆`;
@@ -190,12 +191,6 @@ function renderWelcome(username) {
 }
 
 function updateUI(user = activeUser) {
-  const totalBalance = intlCurrency(sumUpTransactions(user));
-  const totalDeposits = intlCurrency(sumUpDiff(user, tr => tr > 0));
-  console.log(sumUpDiff(user, tr => tr < 0));
-  const totalWithdrawal = intlCurrency(Math.abs(sumUpDiff(user, tr => tr < 0)));
-  const totalInterest = intlCurrency(sumUpInterest(user));
-
   // Display account heading (welcome, date and total balance)
   labelWelcome.textContent = renderWelcome(user.owner);
   labelDate.textContent = intlDate(now, {
@@ -205,15 +200,17 @@ function updateUI(user = activeUser) {
     hour: 'numeric',
     minute: 'numeric',
   });
-  labelBalance.textContent = `${totalBalance}`;
+  labelBalance.textContent = intlCurrency(sumUpTransactions(user));
 
   // Display Transactions
   renderTransactions(user.movements);
 
   // Display account summary
-  labelSumIn.textContent = `${totalDeposits}`;
-  labelSumOut.textContent = `${totalWithdrawal}`;
-  labelSumInterest.textContent = `${totalInterest}`;
+  labelSumIn.textContent = intlCurrency(sumUpDiff(user, tr => tr > 0));
+  labelSumOut.textContent = intlCurrency(
+    Math.abs(sumUpDiff(user, tr => tr < 0))
+  );
+  labelSumInterest.textContent = intlCurrency(sumUpInterest(user));
 }
 
 const findByUsername = username =>
